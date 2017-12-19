@@ -11,6 +11,7 @@ public class TupleDesc implements Serializable {
 	Type[] myTypeAr;
 	String[] myFieldAr;
 	//Rong is stronglll
+	//wangyif
 	
     /**
      * A help class to facilitate organizing the information of each field
