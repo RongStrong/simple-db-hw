@@ -8,10 +8,9 @@ import java.util.*;
  */
 public class TupleDesc implements Serializable {
 
-	Type[] myTypeAr;
-	String[] myFieldAr;
-	//Rong is stronglll
-	//wangyif
+	private Type[] myTypeAr;
+	private String[] myFieldAr;
+
 	
     /**
      * A help class to facilitate organizing the information of each field
@@ -65,6 +64,8 @@ public class TupleDesc implements Serializable {
      */
     public TupleDesc(Type[] typeAr, String[] fieldAr) {
         // some code goes here
+    	myTypeAr = typeAr;
+    	myFieldAr = fieldAr;
     }
 
     /**
@@ -77,6 +78,7 @@ public class TupleDesc implements Serializable {
      */
     public TupleDesc(Type[] typeAr) {
         // some code goes here
+    	myTypeAr = typeAr;
     }
 
     /**
@@ -84,7 +86,7 @@ public class TupleDesc implements Serializable {
      */
     public int numFields() {
         // some code goes here
-        return 0;
+        return myFieldAr.length;
     }
 
     /**
@@ -98,7 +100,12 @@ public class TupleDesc implements Serializable {
      */
     public String getFieldName(int i) throws NoSuchElementException {
         // some code goes here
-        return null;
+    	try {
+    		return myFieldAr[i];
+    		}
+    	catch(NoSuchElementException e){
+    		throw e;
+    	}
     }
 
     /**
@@ -127,7 +134,11 @@ public class TupleDesc implements Serializable {
      */
     public int fieldNameToIndex(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+    	for(int i=0;i<myFieldAr.length;i++) {
+    		if(myFieldAr[i].equals(name))
+    			return i;
+    	}
+        throw new NoSuchElementException();
     }
 
     /**
