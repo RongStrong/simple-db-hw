@@ -79,6 +79,7 @@ public class TupleDesc implements Serializable {
     public TupleDesc(Type[] typeAr) {
         // some code goes here
     	myTypeAr = typeAr;
+    	myFieldAr = new String[typeAr.length];
     }
 
     /**
@@ -86,7 +87,7 @@ public class TupleDesc implements Serializable {
      */
     public int numFields() {
         // some code goes here
-        return myFieldAr.length;
+        return this.myFieldAr.length;
     }
 
     /**
