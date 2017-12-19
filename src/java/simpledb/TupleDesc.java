@@ -10,7 +10,7 @@ public class TupleDesc implements Serializable {
 
 	Type[] myTypeAr;
 	String[] myFieldAr;
-	//Rong is strong
+	//Rong is stronglll
 	
     /**
      * A help class to facilitate organizing the information of each field
