@@ -8,6 +8,10 @@ import java.util.*;
  */
 public class TupleDesc implements Serializable {
 
+	Type[] myTypeAr;
+	String[] myFieldAr;
+	
+	
     /**
      * A help class to facilitate organizing the information of each field
      * */
