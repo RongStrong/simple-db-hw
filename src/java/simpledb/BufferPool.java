@@ -29,6 +29,7 @@ public class BufferPool {
     public static final int DEFAULT_PAGES = 50;
     private int bufferSize;
     private Map<PageId,Page> pageBuffer = new HashMap<>();
+    private int pagesNum;
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -72,8 +73,16 @@ public class BufferPool {
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-    	
-        return null;
+    	if(pageBuffer.containsKey(pid))
+    		return pageBuffer.get(pid);
+    	else {
+    		if(pageBuffer.size()==bufferSize)
+    			throw new TransactionAbortedException();
+    		DbFile file = Database.getCatalog().getDatabaseFile(pid.getTableId());
+    		Page p = file.readPage(pid);
+    		pageBuffer.put(pid, p);
+    		return p;
+    	}
     }
 
     /**
