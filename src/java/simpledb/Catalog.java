@@ -18,11 +18,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Catalog {
 
+	Map<String, Map<String, Object>> catalog;
+	
+	
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
+    	catalog = new HashMap<String, Map<String, Object>>();
         // some code goes here
     }
 
@@ -37,6 +41,14 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+    	int id = file.getId();
+    	Map<String, Object> attr = new HashMap<String, Object>();
+    	attr.put("id", id);
+    	attr.put("pkeyField", pkeyField);
+    	TupleDesc desc = file.getTupleDesc();
+    	attr.put("desc", desc);
+    	attr.put("dbfile", file);
+    	catalog.put(name, attr);
     }
 
     public void addTable(DbFile file, String name) {
@@ -60,7 +72,10 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+    	if(catalog.containsKey(name))
+    		return (int) catalog.get(name).get("id");
+    	else
+    		throw new NoSuchElementException();
     }
 
     /**
@@ -71,7 +86,13 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+    	for(String name : catalog.keySet()) {
+    		if((int) catalog.get(name).get("id") == tableid) {
+    			return ((TupleDesc) catalog.get(name).get("desc"));
+    		}
+    	}
+    	
+        throw new NoSuchElementException();
     }
 
     /**
@@ -82,11 +103,21 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+    	for(String name : catalog.keySet()) {
+    		if((int) catalog.get(name).get("id") == tableid) {
+    			return ((DbFile) catalog.get(name).get("dbfile"));
+    		}
+    	}
+    	throw new NoSuchElementException();
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
+    	for(String name : catalog.keySet()) {
+    		if((int) catalog.get(name).get("id") == tableid) {
+    			return ((String) catalog.get(name).get("pkeyField"));
+    		}
+    	}
         return null;
     }
 
@@ -97,12 +128,18 @@ public class Catalog {
 
     public String getTableName(int id) {
         // some code goes here
+    	for(String name : catalog.keySet()) {
+    		if((int) catalog.get(name).get("id") == id) {
+    			return ((String) catalog.get(name).get("name"));
+    		}
+    	}
         return null;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+    	catalog.clear();
     }
     
     /**
