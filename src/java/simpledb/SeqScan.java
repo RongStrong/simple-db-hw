@@ -31,6 +31,10 @@ public class SeqScan implements OpIterator {
      *            are, but the resulting name can be null.fieldName,
      *            tableAlias.null, or null.null).
      */
+    TransactionId tid;
+    int tableid;
+    String tableAlias;
+    
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
         // some code goes here
     	transId = tid;
