@@ -284,7 +284,14 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        // some code goes here
+        int count=0;
+        for(int i=0;i<header.length;i++){
+        	byte n=header[i];
+        	for(int j=0;j<8;j++){
+        		if((int) n & 1==0)
+        			count++;
+        	}
+        }
         return 0;
     }
 
