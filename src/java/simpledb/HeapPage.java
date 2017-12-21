@@ -67,7 +67,9 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return 0;
+    	int tuplesize=td.getSize();
+    	int pagesize=Database.getBufferPool().getPageSize();
+    	return pagesize*8/(tuplesize*8+1);
 
     }
 
@@ -78,7 +80,7 @@ public class HeapPage implements Page {
     private int getHeaderSize() {        
         
         // some code goes here
-        return 0;
+        return (int) Math.ceil(numSlots/8);
                  
     }
     
@@ -111,8 +113,9 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-    throw new UnsupportedOperationException("implement this");
+    	
+    	return pid;
+    
     }
 
     /**
