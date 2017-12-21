@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Catalog {
 
 	Map<String, Map<String, Object>> catalog;
+	HashMap<Integer, String> idMap = new HashMap<Integer, String>();
 	
 	
     /**
@@ -44,6 +45,7 @@ public class Catalog {
     	int id = file.getId();
     	Map<String, Object> attr = new HashMap<String, Object>();
     	attr.put("id", id);
+    	idMap.put(id, name);
     	attr.put("pkeyField", pkeyField);
     	TupleDesc desc = file.getTupleDesc();
     	attr.put("desc", desc);
@@ -103,12 +105,12 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-    	for(String name : catalog.keySet()) {
-    		if((int) catalog.get(name).get("id") == tableid) {
-    			return ((DbFile) catalog.get(name).get("dbfile"));
-    		}
-    	}
-    	throw new NoSuchElementException();
+    	final String name = idMap.get(tableid);
+		if (name == null) {
+			throw new NoSuchElementException("No table id: " + tableid
+			        + "exists");
+		}
+		return ((DbFile) catalog.get(name).get("dbfile"));
     }
 
     public String getPrimaryKey(int tableid) {
@@ -123,17 +125,12 @@ public class Catalog {
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+    	return new HashSet<Integer>(idMap.keySet()).iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-    	for(String name : catalog.keySet()) {
-    		if((int) catalog.get(name).get("id") == id) {
-    			return ((String) catalog.get(name).get("name"));
-    		}
-    	}
-        return null;
+    	return idMap.get(id);
     }
     
     /** Delete all tables from the catalog */
