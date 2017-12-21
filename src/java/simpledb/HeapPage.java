@@ -286,21 +286,29 @@ public class HeapPage implements Page {
     public int getNumEmptySlots() {
         int count=0;
         for(int i=0;i<header.length;i++){
-        	byte n=header[i];
+        	int n=header[i];
         	for(int j=0;j<8;j++){
-        		if((int) n & 1==0)
+        		if((n & 1)==0)
         			count++;
+        		n = n>>1;
         	}
         }
-        return 0;
+        
+        int res=count-((header.length*8)-tuples.length);
+        return res;
     }
 
     /**
      * Returns true if associated slot on this page is filled.
      */
     public boolean isSlotUsed(int i) {
+    	if(i>=tuples.length)
+    		return false;
         // some code goes here
-        return false;
+    	int offset = i%8;
+    	int loca = (i/8);
+    	//int n = header[loca];
+    	return ((header[loca]>>>offset)&1)==1;
     }
 
     /**
