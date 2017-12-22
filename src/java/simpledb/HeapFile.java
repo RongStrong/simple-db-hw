@@ -128,6 +128,7 @@ public class HeapFile implements DbFile {
     public DbFileIterator iterator(TransactionId tid) {
         // some code goes here
     	return new HeapFileIterator(tid, this);
+    	
     }
 
 }
