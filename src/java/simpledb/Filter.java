@@ -18,18 +18,22 @@ public class Filter extends Operator {
      * @param child
      *            The child operator
      */
+    private Predicate p;
+    private OpIterator child;
     public Filter(Predicate p, OpIterator child) {
         // some code goes here
+    	this.p=p;
+    	this.child=child;
     }
 
     public Predicate getPredicate() {
         // some code goes here
-        return null;
+        return p;
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return p.op.getTupleDesc();
     }
 
     public void open() throws DbException, NoSuchElementException,
