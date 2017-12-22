@@ -68,7 +68,7 @@ public class RecordId implements Serializable {
     public int hashCode() {
         int c=pid.hashCode();
         String s=""+c+tupleno;
-        return Integer.parseInt(s);
+        return s.hashCode();
     }
 
 }
