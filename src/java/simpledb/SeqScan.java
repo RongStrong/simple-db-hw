@@ -13,6 +13,7 @@ public class SeqScan implements OpIterator {
     private TransactionId transId;
     private int tabId;
     private String tabAlias;
+    private DbFile dbFile;
     private DbFileIterator dbFileIterator;
 
     /**
@@ -31,16 +32,14 @@ public class SeqScan implements OpIterator {
      *            are, but the resulting name can be null.fieldName,
      *            tableAlias.null, or null.null).
      */
-    TransactionId tid;
-    int tableid;
-    String tableAlias;
     
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
         // some code goes here
     	transId = tid;
     	tabId = tableid;
     	tabAlias = tableAlias;
-    	//dbFileIterator = DbFile.iterator(tid);
+    	this.dbFile = Database.getCatalog().getDatabaseFile(tableid);
+        this.dbFileIterator = dbFile.iterator(transId);
     }
 
     /**
@@ -85,7 +84,7 @@ public class SeqScan implements OpIterator {
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
-    	
+    	dbFileIterator.open();
     }
 
     /**
@@ -100,26 +99,28 @@ public class SeqScan implements OpIterator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return Database.getCatalog().getTupleDesc(tabId);
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        return false;
+        return dbFileIterator.hasNext();
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        return dbFileIterator.next();
     }
 
     public void close() {
         // some code goes here
+    	dbFileIterator.close();
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+    	dbFileIterator.rewind();
     }
 }
