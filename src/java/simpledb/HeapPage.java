@@ -308,6 +308,7 @@ public class HeapPage implements Page {
     	int offset = i%8;
     	int loca = (i/8);
     	//int n = header[loca];
+    	if(loca>=header.length) return false;
     	return ((header[loca]>>>offset)&1)==1;
     }
 
