@@ -69,7 +69,7 @@ public class HeapPage implements Page {
         // some code goes here
     	int tuplesize=td.getSize();
     	int pagesize=Database.getBufferPool().getPageSize();
-    	return pagesize*8/(tuplesize*8+1);
+    	return (int) Math.floor(pagesize*8.0/(tuplesize*8.0+1.0));
 
     }
 
@@ -80,7 +80,7 @@ public class HeapPage implements Page {
     private int getHeaderSize() {        
         
         // some code goes here
-        return (int) Math.ceil(numSlots/8);
+        return (int) Math.ceil(numSlots/8.0);
                  
     }
     
