@@ -20,7 +20,6 @@ public class Filter extends Operator {
      */
     private Predicate p;
     private OpIterator child;
-    private OpIterator[] children;
     
     
     public Filter(Predicate p, OpIterator child) {
@@ -47,8 +46,8 @@ public class Filter extends Operator {
 
     public void close() {
         // some code goes here
-    	super.close();
     	child.close();
+    	super.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
@@ -80,13 +79,13 @@ public class Filter extends Operator {
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return children;
+    	return new OpIterator[]{child};
     }
 
     @Override
     public void setChildren(OpIterator[] children) {
         // some code goes here
-    	this.children=children;
+    	child = children[0];
     }
 
 }
