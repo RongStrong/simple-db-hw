@@ -118,12 +118,12 @@ public class Join extends Operator {
 //        			TupleDesc td=getTupleDesc();
 //        			Tuple newTuple=new Tuple(td);
 //        			
-//        			for(int i=0;i<t1.descriptor.numFields();i++){
+//        			for(int i=0;i<t1.getTupleDesc().numFields();i++){
 //        				newTuple.setField(i,t1.getField(i));
 //        			}
 //        			
-//        			for(int i=0;i<t2.descriptor.numFields();i++){
-//        				newTuple.setField(i+t1.descriptor.numFields(), t2.getField(i));
+//        			for(int i=0;i<t2.getTupleDesc().numFields();i++){
+//        				newTuple.setField(i+t1.getTupleDesc().numFields(), t2.getField(i));
 //        			}
 //        			
 //        			return newTuple;
@@ -132,10 +132,9 @@ public class Join extends Operator {
 //        		child2.rewind();
 //        	}
 //        	
-//        	break;
+//        	return null;
 //        }
-//    	
-//    	return null;
+    	
     	
     	
     	

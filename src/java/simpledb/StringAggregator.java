@@ -1,5 +1,12 @@
 package simpledb;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import simpledb.Aggregator.Op;
+
 /**
  * Knows how to compute some aggregate over a set of StringFields.
  */
@@ -16,8 +23,23 @@ public class StringAggregator implements Aggregator {
      * @throws IllegalArgumentException if what != COUNT
      */
 
+    private int gbfield;
+    private Type gbfieldtype;
+    private int afield;
+    private Op what;
+    
+    private Map<Field,Integer> mapV;
+    private Map<Field,Integer> mapC;
+    
     public StringAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
         // some code goes here
+    	
+    	this.gbfield=gbfield;
+    	this.gbfieldtype=gbfieldtype;
+    	this.afield=afield;
+    	this.what=what;
+    	
+    	this.mapV=new HashMap<>();
     }
 
     /**
@@ -26,7 +48,21 @@ public class StringAggregator implements Aggregator {
      */
     public void mergeTupleIntoGroup(Tuple tup) {
         // some code goes here
+    	
+    	Field groupValue;
+    	if(gbfield!=-1)
+    	    groupValue=tup.getField(gbfield);
+    	else groupValue=null;
+    	Field aValue=tup.getField(afield);
+    	
+    	if(mapV.containsKey(groupValue)){
+    		mapV.put(groupValue, mapV.get(groupValue)+1);
+    	}
+    	else{
+    		mapV.put(groupValue, 1);
+    	}
     }
+    
 
     /**
      * Create a OpIterator over group aggregate results.
@@ -38,7 +74,35 @@ public class StringAggregator implements Aggregator {
      */
     public OpIterator iterator() {
         // some code goes here
-        throw new UnsupportedOperationException("please implement me for lab2");
+        
+    	List<Tuple> list=new LinkedList<>();
+    	TupleDesc td;
+        if(gbfield==-1){
+        	td=new TupleDesc(new Type[] {Type.STRING_TYPE});
+        }
+        else
+        	td=new TupleDesc(new Type[] {gbfieldtype, Type.STRING_TYPE});
+        
+        if(gbfield==-1){
+        	for(Field key: mapV.keySet()){
+        		Tuple t=new Tuple(td);
+        		int value=mapV.get(key);
+        		t.setField(0, new IntField(value));
+        		list.add(t);
+        	}
+        }
+        else{
+        	for(Field key: mapV.keySet()){
+        		Tuple t=new Tuple(td);
+        		int value=mapV.get(key);
+        		t.setField(0, key);
+        		t.setField(1, new IntField(value));
+        		list.add(t);
+        	}
+        }
+        
+        return new TupleIterator(td,list);
+    	
     }
 
 }
