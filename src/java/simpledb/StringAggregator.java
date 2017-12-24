@@ -78,10 +78,10 @@ public class StringAggregator implements Aggregator {
     	List<Tuple> list=new LinkedList<>();
     	TupleDesc td;
         if(gbfield==-1){
-        	td=new TupleDesc(new Type[] {Type.STRING_TYPE});
+        	td=new TupleDesc(new Type[] {Type.INT_TYPE});
         }
         else
-        	td=new TupleDesc(new Type[] {gbfieldtype, Type.STRING_TYPE});
+        	td=new TupleDesc(new Type[] {gbfieldtype, Type.INT_TYPE});
         
         if(gbfield==-1){
         	for(Field key: mapV.keySet()){
