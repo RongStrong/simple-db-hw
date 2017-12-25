@@ -196,6 +196,9 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
+    	if(pageBuffer.containsKey(pid))
+    		pageBuffer.remove(pid);
+    	return;
     }
 
     /**
@@ -233,6 +236,17 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+    	try {
+    		for(PageId pid:pageBuffer.keySet()) {
+    			flushPage(pid);
+    			discardPage(pid);
+    			break;
+    		}
+    	}
+    	catch(Exception e) {
+    		throw new DbException("Error when evicting page");
+    	}
+    	return;
     }
 
 }
