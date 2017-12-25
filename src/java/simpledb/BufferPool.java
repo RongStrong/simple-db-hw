@@ -244,7 +244,7 @@ public class BufferPool {
     		}
     	}
     	catch(Exception e) {
-    		throw new DbException("Error when evicting page");
+    		throw new DbException(e.getMessage());
     	}
     	return;
     }
