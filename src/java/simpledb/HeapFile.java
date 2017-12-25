@@ -18,7 +18,7 @@ public class HeapFile implements DbFile {
 	
 	private File file;
 	private TupleDesc tDesc;
-	private HashMap<Integer, HeapPage> pMap;
+	//private HashMap<Integer, HeapPage> pMap;
 	private RandomAccessFile raf;
 
     /**
@@ -82,7 +82,7 @@ public class HeapFile implements DbFile {
         // some code goes here
     	int offset = pid.getPageNumber() * BufferPool.getPageSize();
     	byte[] pData = new byte[BufferPool.getPageSize()];
-    	Page p;
+    	//Page p;
     	try {
     		raf.seek(offset);
     		raf.read(pData, 0, BufferPool.getPageSize());
@@ -120,7 +120,24 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-        return null;
+    	    ArrayList<Page> pList = new ArrayList<Page>();
+    	    int pgNo;
+    		for(pgNo = 0; pgNo < this.numPages(); pgNo++) {
+    			HeapPageId pid = new HeapPageId(this.getId(), pgNo);
+    			HeapPage p = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
+    			if(p.getNumEmptySlots() > 0) {
+    				p.insertTuple(t);
+    				pList.add(p);
+    				return pList;
+    			}
+    		}
+    		HeapPageId pid = new HeapPageId(this.getId(), pgNo);
+    		byte[] bytes = new byte[BufferPool.getPageSize()];
+    		HeapPage p = new HeapPage(pid, bytes);
+    		this.writePage(p);
+    		p.insertTuple(t);
+    		pList.add(p);
+    		return pList;
         // not necessary for lab1
     }
 
@@ -128,7 +145,13 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException,
             TransactionAbortedException {
         // some code goes here
-        return null;
+    		ArrayList<Page> pList = new ArrayList<Page>();
+    		RecordId rid = t.getRecordId();
+    		HeapPageId pid = (HeapPageId) rid.getPageId();
+    		HeapPage p = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
+    		p.deleteTuple(t);
+    		pList.add(p);
+        return pList;
         // not necessary for lab1
     }
 
