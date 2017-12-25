@@ -99,6 +99,13 @@ public class HeapFile implements DbFile {
     public void writePage(Page page) throws IOException {
         // some code goes here
         // not necessary for lab1
+    	int offset = page.getId().getPageNumber();
+    	try {
+    		raf.write(page.getPageData(), offset, BufferPool.getPageSize());
+    	}
+    	catch(Exception e) {
+    		throw new IOException(e.getMessage());
+    	}
     }
 
     /**
