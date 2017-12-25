@@ -38,8 +38,13 @@ public class StringAggregator implements Aggregator {
     	this.gbfieldtype=gbfieldtype;
     	this.afield=afield;
     	this.what=what;
-    	
     	this.mapV=new HashMap<>();
+    	switch(what) {
+    	case COUNT:
+    		break;
+    	default:
+    		throw new IllegalArgumentException();    			
+    	}
     }
 
     /**

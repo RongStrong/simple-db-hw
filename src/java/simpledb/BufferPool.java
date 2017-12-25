@@ -77,7 +77,8 @@ public class BufferPool {
     		return pageBuffer.get(pid);
     	else {
     		if(pageBuffer.size()==bufferSize)
-    			throw new TransactionAbortedException();
+    			//throw new TransactionAbortedException();
+    			evictPage();
     		DbFile file = Database.getCatalog().getDatabaseFile(pid.getTableId());
     		Page p = file.readPage(pid);
     		pageBuffer.put(pid, p);
@@ -177,7 +178,11 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
-
+    	for(PageId pid:pageBuffer.keySet()) {
+    		flushPage(pid);
+    	}
+    	return;
+    	
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -200,6 +205,18 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
+    	try {
+    		Page p = pageBuffer.get(pid);
+    		TransactionId isDir = p.isDirty();
+    		if(isDir!=null) {
+    			Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(p);
+    			p.markDirty(false, isDir);
+    		}
+    	}
+    	catch (Exception e){
+    		throw new IOException();
+    	}
+    	return;
     }
 
     /** Write all pages of the specified transaction to disk.

@@ -11,6 +11,12 @@ public class Aggregate extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    private OpIterator _child;
+    private int _afield;
+    private int _gfield;
+    private Aggregator.Op _aop;
+    private OpIterator _iterator; 
+    
     /**
      * Constructor.
      * 
@@ -31,6 +37,11 @@ public class Aggregate extends Operator {
      */
     public Aggregate(OpIterator child, int afield, int gfield, Aggregator.Op aop) {
 	// some code goes here
+    	_child = child;
+    	_afield = afield;
+    	_gfield = gfield;
+    	_aop = aop;
+    	_iterator = null;
     }
 
     /**
@@ -40,7 +51,7 @@ public class Aggregate extends Operator {
      * */
     public int groupField() {
 	// some code goes here
-	return -1;
+    	return _gfield;
     }
 
     /**
@@ -50,7 +61,7 @@ public class Aggregate extends Operator {
      * */
     public String groupFieldName() {
 	// some code goes here
-	return null;
+    	return _child.getTupleDesc().getFieldName(_gfield);
     }
 
     /**
@@ -58,7 +69,7 @@ public class Aggregate extends Operator {
      * */
     public int aggregateField() {
 	// some code goes here
-	return -1;
+    	return _afield;
     }
 
     /**
@@ -67,7 +78,7 @@ public class Aggregate extends Operator {
      * */
     public String aggregateFieldName() {
 	// some code goes here
-	return null;
+		return _child.getTupleDesc().getFieldName(_afield);
     }
 
     /**
@@ -75,16 +86,18 @@ public class Aggregate extends Operator {
      * */
     public Aggregator.Op aggregateOp() {
 	// some code goes here
-	return null;
+		return _aop;
     }
 
     public static String nameOfAggregatorOp(Aggregator.Op aop) {
-	return aop.toString();
+    	return aop.toString();
     }
 
     public void open() throws NoSuchElementException, DbException,
 	    TransactionAbortedException {
 	// some code goes here
+    	super.open();
+    	_child.open();
     }
 
     /**
@@ -96,11 +109,37 @@ public class Aggregate extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
 	// some code goes here
-	return null;
+    	if(_iterator==null) {
+    		if(!_child.hasNext())
+    			return null;
+    		Type _gfieldType = _gfield==-1?null:_child.getTupleDesc().getFieldType(_gfield);
+    		if(_child.getTupleDesc().getFieldType(_afield).equals(Type.INT_TYPE)) {
+        		Aggregator agg = new IntegerAggregator(_gfield,_gfieldType,_afield,_aop);
+        		while(_child.hasNext())
+        			agg.mergeTupleIntoGroup(_child.next());
+        		_iterator = agg.iterator();
+        	}
+    		if(_child.getTupleDesc().getFieldType(_afield).equals(Type.STRING_TYPE)) {
+        		Aggregator agg = new StringAggregator(_gfield,_gfieldType,_afield,_aop);
+        		while(_child.hasNext())
+        			agg.mergeTupleIntoGroup(_child.next());
+        		_iterator = agg.iterator();
+        	}
+    		_iterator.open();
+    	}
+		
+    	if(_iterator.hasNext())
+    		return _iterator.next();
+    	else
+    		return null;
+    	
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
 	// some code goes here
+    	//_child.rewind();
+    	close();
+    	open();
     }
 
     /**
@@ -116,22 +155,33 @@ public class Aggregate extends Operator {
      */
     public TupleDesc getTupleDesc() {
 	// some code goes here
-	return null;
+    	TupleDesc td;
+    	
+        if(_gfield==-1){
+        	td=new TupleDesc(new Type[] {_child.getTupleDesc().getFieldType(_afield)});
+        }
+        else
+        	td=new TupleDesc(new Type[] {_child.getTupleDesc().getFieldType(_gfield), _child.getTupleDesc().getFieldType(_afield)});
+        return td;
     }
 
     public void close() {
 	// some code goes here
+    	_child.close();
+    	_iterator=null;
+    	super.close();
     }
 
     @Override
     public OpIterator[] getChildren() {
 	// some code goes here
-	return null;
+    	return new OpIterator[]{_child};
     }
 
     @Override
     public void setChildren(OpIterator[] children) {
 	// some code goes here
+    	_child = children[0];
     }
     
 }
