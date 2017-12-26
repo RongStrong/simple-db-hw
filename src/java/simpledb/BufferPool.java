@@ -3,6 +3,7 @@ package simpledb;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.io.*;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +32,7 @@ public class BufferPool {
     private int bufferSize;
     private Map<PageId,Page> pageBuffer = new HashMap<>();
     private int pagesNum;
+
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -155,6 +157,7 @@ public class BufferPool {
     		for(Page p : pList) {
     			p.markDirty(true, tid);
     			pageBuffer.put(p.getId(), p);
+    			
     		}
 	    
     }
@@ -182,6 +185,7 @@ public class BufferPool {
     		for(Page p : pList) {
     			p.markDirty(true, tid);
     			pageBuffer.put(p.getId(), p);
+    			
     		}
     }
 
@@ -257,6 +261,7 @@ public class BufferPool {
     			discardPage(pid);
     			break;
     		}
+			
     	}
     	catch(Exception e) {
     		throw new DbException(e.getMessage());
