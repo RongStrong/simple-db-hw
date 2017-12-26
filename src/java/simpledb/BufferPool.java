@@ -104,6 +104,7 @@ public class BufferPool {
     public  void releasePage(TransactionId tid, PageId pid) {
         // some code goes here
         // not necessary for lab1|lab2
+    		lock.unLock(tid, pid);
     }
 
     /**

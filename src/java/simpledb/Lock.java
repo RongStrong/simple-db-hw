@@ -24,6 +24,18 @@ public class Lock {
 		return false;
 	}
 	
+	public synchronized void unLock(TransactionId tid, PageId pid) {
+		if(exLock.containsKey(pid) && exLock.get(pid).equals(tid)) {
+			exLock.remove(pid);
+		}
+		if(shLock.containsKey(pid) && shLock.get(pid).contains(tid)) {
+			shLock.get(pid).remove(tid);
+			if(shLock.get(pid).size() == 0) {
+				shLock.remove(pid);
+			}
+		}
+	}
+	
 	
 	
 	
