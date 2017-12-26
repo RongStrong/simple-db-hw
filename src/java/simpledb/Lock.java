@@ -5,8 +5,8 @@ import java.util.*;
 
 public class Lock {
 
-	Map<PageId, TransactionId> exLock;
-	Map<PageId, Set<TransactionId>> shLock;
+	private final Map<PageId, TransactionId> exLock;
+	private final Map<PageId, Set<TransactionId>> shLock;
 	
 	public Lock() {
 		exLock = new HashMap<PageId, TransactionId>();
