@@ -32,6 +32,7 @@ public class BufferPool {
     private int bufferSize;
     private Map<PageId,Page> pageBuffer = new HashMap<>();
     private int pagesNum;
+    private Lock lock;
 
 
     /**
@@ -42,6 +43,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
         // some code goes here
     	bufferSize = numPages;
+    	lock = new Lock();
     }
     
     public static int getPageSize() {
@@ -76,6 +78,7 @@ public class BufferPool {
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
+    	
     	if(pageBuffer.containsKey(pid))
     		return pageBuffer.get(pid);
     	else {
@@ -117,7 +120,7 @@ public class BufferPool {
     public boolean holdsLock(TransactionId tid, PageId p) {
         // some code goes here
         // not necessary for lab1|lab2
-        return false;
+        return lock.holdsLock(tid, p);
     }
 
     /**
