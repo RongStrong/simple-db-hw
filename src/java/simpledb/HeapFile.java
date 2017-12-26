@@ -16,7 +16,7 @@ import java.util.*;
 public class HeapFile implements DbFile {
 	
 	
-	private File file;
+	public File file;
 	private TupleDesc tDesc;
 	//private HashMap<Integer, HeapPage> pMap;
 	private RandomAccessFile raf;
@@ -99,13 +99,22 @@ public class HeapFile implements DbFile {
     public void writePage(Page page) throws IOException {
         // some code goes here
         // not necessary for lab1
-    	int offset = page.getId().getPageNumber();
+    	
+    		int offset = page.getId().getPageNumber() * BufferPool.getPageSize();
+    		RandomAccessFile rf = new RandomAccessFile(file, "rw");
+    		rf.seek(offset);
+        rf.write(page.getPageData());
+        rf.close();
+    	
+    	/*
+    	int offset = page.getId().getPageNumber() * BufferPool.getPageSize();
+    	
     	try {
     		raf.write(page.getPageData(), offset, BufferPool.getPageSize());
     	}
     	catch(Exception e) {
     		throw new IOException(e.getMessage());
-    	}
+    	}*/
     }
 
     /**
@@ -119,12 +128,13 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
+    	
         // some code goes here
     	    ArrayList<Page> pList = new ArrayList<Page>();
     	    int pgNo;
     		for(pgNo = 0; pgNo < this.numPages(); pgNo++) {
     			HeapPageId pid = new HeapPageId(this.getId(), pgNo);
-    			HeapPage p = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
+    			HeapPage p = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
     			if(p.getNumEmptySlots() > 0) {
     				p.insertTuple(t);
     				pList.add(p);
@@ -134,10 +144,35 @@ public class HeapFile implements DbFile {
     		HeapPageId pid = new HeapPageId(this.getId(), pgNo);
     		byte[] bytes = new byte[BufferPool.getPageSize()];
     		HeapPage p = new HeapPage(pid, bytes);
-    		this.writePage(p);
+    		
     		p.insertTuple(t);
+    		this.writePage(p);
     		pList.add(p);
-    		return pList;
+    		return pList;/*
+    	int pageNo;
+    	for(pageNo = 0; pageNo < this.numPages(); pageNo++) {
+    		HeapPageId pid = new HeapPageId(getId(), pageNo);
+    		HeapPage p = (HeapPage)Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
+    		if(p.getNumEmptySlots() > 0){
+        		break;
+        	}
+    	}
+    if(pageNo == this.numPages()) {
+    	HeapPageId 	pid = new HeapPageId(getId(), pageNo);
+    	byte[] bytes = new byte[BufferPool.getPageSize()];
+		HeapPage hp = new HeapPage(pid, bytes);
+		writePage(hp);
+    }
+    HeapPageId 	pid = new HeapPageId(getId(), pageNo);
+		
+		
+		
+    HeapPage p = (HeapPage)Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
+    	
+    	p.insertTuple(t);
+    	ArrayList<Page> ls = new ArrayList<Page>();
+    	ls.add(p);
+        return ls;*/
         // not necessary for lab1
     }
 

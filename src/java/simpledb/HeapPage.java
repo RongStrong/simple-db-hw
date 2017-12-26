@@ -19,6 +19,7 @@ public class HeapPage implements Page {
     final Tuple tuples[];
     final int numSlots;
     private TransactionId tid;
+    boolean dirty = false;
 
     byte[] oldData;
     private final Byte oldDataLock=new Byte((byte)0);
@@ -269,9 +270,18 @@ public class HeapPage implements Page {
     public void insertTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+    		if(getNumEmptySlots() == 0){
+    			throw new DbException("this page is full");
+    		}
+    	
+    		if(!td.equals(t.getTupleDesc())){
+    			throw new DbException("tupledesc mismatch");
+    		}
+    		
     		for(int i = 0; i < this.numSlots; i++) {
     			if(this.isSlotUsed(i) == false) {
     				this.markSlotUsed(i, true);
+    				System.out.println(i);
     				tuples[i] = t;
     				t.setRecordId(new RecordId(this.pid, i));
     				return;
@@ -287,10 +297,13 @@ public class HeapPage implements Page {
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
 	// not necessary for lab1
+    	/*
     	if(dirty==false)
     		tid=null;
     	else
-    		tid=this.tid;
+    		tid=this.tid;*/
+    	this.tid = tid;
+    	this.dirty = dirty;
     }
 
     /**
@@ -299,7 +312,11 @@ public class HeapPage implements Page {
     public TransactionId isDirty() {
         // some code goes here
 	// Not necessary for lab1
-        return tid;      
+        //return tid;      
+    	if(this.dirty)
+    		return this.tid;
+    	else
+    		return null;
     }
 
     /**
