@@ -47,7 +47,11 @@ public class Insert extends Operator {
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return child.getTupleDesc();
+    	Type[] typeAr=new Type[]{Type.INT_TYPE};
+    	String[] fieldAr=new String[]{"number of inserts"};
+    	TupleDesc td=new TupleDesc( typeAr,fieldAr);
+    	
+    	return td;
     }
 
     public void open() throws DbException, TransactionAbortedException {
