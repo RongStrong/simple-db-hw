@@ -150,6 +150,7 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+<<<<<<< HEAD
     		DbFile table = Database.getCatalog().getDatabaseFile(tableId);
     		ArrayList<Page> pList = table.insertTuple(tid, t);
     		for(Page p : pList) {
@@ -157,6 +158,10 @@ public class BufferPool {
     			pageBuffer.put(p.getId(), p);
     		}
 	    
+=======
+    	
+    	
+>>>>>>> origin/master
     }
 
     /**
