@@ -119,6 +119,26 @@ public class Lock {
 		return;
 	}
 	
+	public synchronized  List<PageId> getFlushPages(TransactionId tid) throws IOException{
+		
+		List<PageId> fPages = new ArrayList<>();
+		for(PageId pid:exLock.keySet()) {
+			if(exLock.get(pid).equals(tid))
+				fPages.add(pid);
+		}
+		
+		Set<TransactionId> tmp = new HashSet<>();
+		for(PageId pid:shLock.keySet()) {
+			tmp = shLock.get(pid);
+			if(tmp.contains(tid)) {
+				fPages.add(pid);
+			}
+		}
+	    
+		return fPages;
+		
+	}
+	
 	
 	
 }
