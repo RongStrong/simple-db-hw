@@ -44,6 +44,13 @@ public class Lock {
 		
 		if(perm.toString().equals("READ_ONLY")) {
 			while(exLock.containsKey(pid)) {
+				if(exLock.get(pid).equals(tid)) {
+					exLock.remove(pid);
+					Set<TransactionId> curr = new HashSet<TransactionId>();
+					curr.add(tid);
+					shLock.put(pid, curr);
+					return;
+				}
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) {
@@ -67,6 +74,11 @@ public class Lock {
 		
 		if(perm.toString().equals("READ_WRITE")) {
 			while(exLock.containsKey(pid) && shLock.containsKey(pid)) {
+				if(shLock.containsKey(pid) && shLock.get(pid).contains(tid) && shLock.get(pid).size() == 1) {
+					shLock.remove(pid);
+					exLock.put(pid, tid);
+					return;
+				}
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) {
