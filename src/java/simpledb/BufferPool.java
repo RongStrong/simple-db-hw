@@ -3,6 +3,7 @@ package simpledb;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.io.*;
 
@@ -79,6 +80,7 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
     		lock.lockPage(tid, pid, perm);
+    		
     	
     	if(pageBuffer.containsKey(pid))
     		return pageBuffer.get(pid);
@@ -116,7 +118,8 @@ public class BufferPool {
     public void transactionComplete(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
-    	lock.transactionComplete(tid);
+    	
+    	transactionComplete(tid,true);
     }
 
     /** Return true if the specified transaction has a lock on the specified page */
@@ -137,6 +140,23 @@ public class BufferPool {
         throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
+    	if(commit){
+    		this.flushPages(tid);
+    		lock.transactionComplete(tid);
+    	}
+    	else{
+    		List<PageId> fPages=lock.getFlushPages(tid);
+    		lock.transactionComplete(tid);
+    		for(PageId pid:fPages){
+    			this.discardPage(pid);
+    		}
+    		
+    		for(PageId pid:fPages){
+    			int tableId=pid.getTableId();
+    			pageBuffer.put(pid,Database.getCatalog().getDatabaseFile(tableId).readPage(pid));
+    		}
+    	}
+    	
     }
 
     /**
@@ -254,6 +274,12 @@ public class BufferPool {
     public synchronized  void flushPages(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
+    	List<PageId> fPages=lock.getFlushPages(tid);
+    	
+    	for(PageId pid:fPages){
+    		flushPage(pid);
+    	}
+
     }
 
     /**
@@ -265,9 +291,12 @@ public class BufferPool {
         // not necessary for lab1
     	try {
     		for(PageId pid:pageBuffer.keySet()) {
-    			flushPage(pid);
-    			discardPage(pid);
-    			break;
+    			if(pageBuffer.get(pid).isDirty() == null) {
+    				flushPage(pid);
+        			discardPage(pid);
+        			break;
+    			}
+    			
     		}
 			
     	}
