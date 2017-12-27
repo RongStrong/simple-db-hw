@@ -281,7 +281,7 @@ public class HeapPage implements Page {
     		for(int i = 0; i < this.numSlots; i++) {
     			if(this.isSlotUsed(i) == false) {
     				this.markSlotUsed(i, true);
-    				System.out.println(i);
+    				//System.out.println(i);
     				tuples[i] = t;
     				t.setRecordId(new RecordId(this.pid, i));
     				return;
