@@ -263,9 +263,12 @@ public class BufferPool {
         // not necessary for lab1
     	try {
     		for(PageId pid:pageBuffer.keySet()) {
-    			flushPage(pid);
-    			discardPage(pid);
-    			break;
+    			if(pageBuffer.get(pid).isDirty() == null) {
+    				flushPage(pid);
+        			discardPage(pid);
+        			break;
+    			}
+    			
     		}
 			
     	}
