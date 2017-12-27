@@ -39,11 +39,14 @@ public class Lock {
 		}
 	}
 	
-	public synchronized void lockPage(TransactionId tid, PageId pid, Permissions perm) {
+	public synchronized void lockPage(TransactionId tid, PageId pid, Permissions perm)
+			throws TransactionAbortedException {
 		
-		
+		long start = System.currentTimeMillis();
 		if(perm.toString().equals("READ_ONLY")) {
 			while(exLock.containsKey(pid)) {
+				if(System.currentTimeMillis() > start + 1000)
+					throw new TransactionAbortedException();
 				if(exLock.get(pid).equals(tid)) {
 					exLock.remove(pid);
 					Set<TransactionId> curr = new HashSet<TransactionId>();
@@ -74,6 +77,8 @@ public class Lock {
 		
 		if(perm.toString().equals("READ_WRITE")) {
 			while(exLock.containsKey(pid) || shLock.containsKey(pid)) {
+				if(System.currentTimeMillis() > start + 1000)
+					throw new TransactionAbortedException();
 				if(exLock.containsKey(pid) && exLock.get(pid).equals(tid))
 					return;
 				if(shLock.containsKey(pid) && shLock.get(pid).contains(tid) && shLock.get(pid).size() == 1) {

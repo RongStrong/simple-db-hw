@@ -80,6 +80,7 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
     		lock.lockPage(tid, pid, perm);
+    		
     	
     	if(pageBuffer.containsKey(pid))
     		return pageBuffer.get(pid);
