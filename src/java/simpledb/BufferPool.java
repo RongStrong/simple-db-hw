@@ -163,9 +163,11 @@ public class BufferPool {
     		for(Page p : pList) {
     			p.markDirty(true, tid);
     			pageBuffer.put(p.getId(), p);
-    			
     		}
-	    
+       		HeapFile tmp = (HeapFile) table;
+    		for(int pgNo = 0; pgNo <= pList.get(0).getId().getPageNumber(); pgNo++) {
+    			lock.unLock(tid, new HeapPageId(table.getId(), pgNo));
+    		}
     }
 
     /**

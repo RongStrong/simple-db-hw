@@ -21,6 +21,7 @@ public class HeapFile implements DbFile {
 	//private HashMap<Integer, HeapPage> pMap;
 	private RandomAccessFile raf;
 
+
     /**
      * Constructs a heap file backed by the specified file.
      * 
@@ -140,11 +141,12 @@ public class HeapFile implements DbFile {
     				pList.add(p);
     				return pList;
     			}
+
     		}
     		HeapPageId pid = new HeapPageId(this.getId(), pgNo);
     		byte[] bytes = new byte[BufferPool.getPageSize()];
     		HeapPage p = new HeapPage(pid, bytes);
-    		
+
     		p.insertTuple(t);
     		this.writePage(p);
     		pList.add(p);
