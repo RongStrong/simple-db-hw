@@ -116,6 +116,7 @@ public class BufferPool {
     public void transactionComplete(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
+    	lock.transactionComplete(tid);
     }
 
     /** Return true if the specified transaction has a lock on the specified page */

@@ -95,6 +95,29 @@ public class Lock {
 	}
 	
 	
+	public synchronized void transactionComplete(TransactionId tid) {
+		List<PageId> curr = new ArrayList<>();
+		for(PageId pid:exLock.keySet()) {
+			if(exLock.get(pid).equals(tid))
+				curr.add(pid);
+		}
+		for(PageId pid:curr)
+			exLock.remove(pid);
+		curr.clear();
+		Set<TransactionId> tmp = new HashSet<>();
+		for(PageId pid:shLock.keySet()) {
+			tmp = shLock.get(pid);
+			if(tmp.contains(tid)) {
+				tmp.remove(tid);
+			}
+			if(tmp.isEmpty())
+				curr.add(pid);
+			shLock.put(pid, tmp);
+		}
+		for(PageId pid:curr)
+			shLock.remove(pid);
+		return;
+	}
 	
 	
 	

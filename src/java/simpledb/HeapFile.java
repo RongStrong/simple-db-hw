@@ -183,7 +183,7 @@ public class HeapFile implements DbFile {
     		ArrayList<Page> pList = new ArrayList<Page>();
     		RecordId rid = t.getRecordId();
     		HeapPageId pid = (HeapPageId) rid.getPageId();
-    		HeapPage p = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
+    		HeapPage p = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
     		p.deleteTuple(t);
     		pList.add(p);
         return pList;
