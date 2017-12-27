@@ -73,7 +73,9 @@ public class Lock {
 		
 		
 		if(perm.toString().equals("READ_WRITE")) {
-			while(exLock.containsKey(pid) && shLock.containsKey(pid)) {
+			while(exLock.containsKey(pid) || shLock.containsKey(pid)) {
+				if(exLock.containsKey(pid) && exLock.get(pid).equals(tid))
+					return;
 				if(shLock.containsKey(pid) && shLock.get(pid).contains(tid) && shLock.get(pid).size() == 1) {
 					shLock.remove(pid);
 					exLock.put(pid, tid);
