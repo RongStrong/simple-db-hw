@@ -59,6 +59,8 @@ public class HeapFileIterator implements DbFileIterator {
 			if (tpIterator.hasNext()) {
 				return true;
 			}
+			//else
+			//	return false;
 		}
 		return false;
 	}
@@ -87,7 +89,7 @@ public class HeapFileIterator implements DbFileIterator {
 		if (tpIterator == null) {
 			throw new NoSuchElementException("Tuple iterator not opened");
 		}
-		assert (tpIterator.hasNext());
+		//assert (tpIterator.hasNext());
 		return tpIterator.next();
 	}
 	
