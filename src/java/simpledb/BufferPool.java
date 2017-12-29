@@ -206,7 +206,7 @@ public class BufferPool {
             pgBufferPool.remove(newPg.getId());
             pgBufferPool.put(newPg.getId(), newPg);
         }
-    }
+    } 
 
     /**
      * Remove the specified tuple from the buffer pool.
