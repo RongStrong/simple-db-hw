@@ -24,6 +24,7 @@ public class BTreeFile implements DbFile {
 	private final TupleDesc td;
 	private final int tableid ;
 	private int keyField;
+	private LockManager lock;
 
 	/**
 	 * Constructs a B+ tree file backed by the specified file.
@@ -38,6 +39,7 @@ public class BTreeFile implements DbFile {
 		this.tableid = f.getAbsoluteFile().hashCode();
 		this.keyField = key;
 		this.td = td;
+		this.lock = new LockManager(0, 0);
 	}
 
 	/**
@@ -195,7 +197,20 @@ public class BTreeFile implements DbFile {
 			Field f) 
 					throws DbException, TransactionAbortedException {
 		// some code goes here
-        return null;
+		//
+		if(pid.pgcateg() == BTreePageId.LEAF) {
+			return (BTreeLeafPage) (this.getPage(tid, dirtypages, pid, perm));
+		}
+		Iterator<BTreeEntry> it = ((BTreeInternalPage) this.getPage(tid, dirtypages, pid, Permissions.READ_ONLY)).iterator();
+		BTreeEntry et = null;
+		while(it.hasNext()) {
+			et = it.next();
+			if(true) {
+				return(findLeafPage(tid, dirtypages, et.getLeftChild(), perm, f));
+			}
+		}
+		
+        return(findLeafPage(tid, dirtypages, et.getRightChild(), perm, f));
 	}
 	
 	/**
@@ -411,6 +426,7 @@ public class BTreeFile implements DbFile {
 	 */
 	Page getPage(TransactionId tid, HashMap<PageId, Page> dirtypages, BTreePageId pid, Permissions perm)
 			throws DbException, TransactionAbortedException {
+		
 		if(dirtypages.containsKey(pid)) {
 			return dirtypages.get(pid);
 		}
