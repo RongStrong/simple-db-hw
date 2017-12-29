@@ -262,7 +262,46 @@ public class BTreeFile implements DbFile {
 		// the new entry.  getParentWithEmtpySlots() will be useful here.  Don't forget to update
 		// the sibling pointers of all the affected leaf pages.  Return the page into which a 
 		// tuple with the given key field should be inserted.
-        return null;
+		BTreeLeafPage right = (BTreeLeafPage) getEmptyPage(tid, dirtypages, BTreePageId.LEAF);
+		Iterator<Tuple> it = page.reverseIterator();
+		int lenRight = (page.getNumTuples()+1)/2;
+		Tuple[] tupleToCopy = new Tuple[lenRight];
+		for(int i=lenRight-1;i>=0;i--) {
+			tupleToCopy[i] = it.next();
+		}
+		for(int i=0;i<tupleToCopy.length;i++) {
+			page.deleteTuple(tupleToCopy[i]);
+			right.insertTuple(tupleToCopy[i]);
+		}
+		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, 
+			page.getParentId(), tupleToCopy[0].getField(keyField));
+		BTreeEntry entry = new BTreeEntry(tupleToCopy[0].getField(keyField),page.getId(),right.getId());
+		parentPage.insertEntry(entry);
+		
+		BTreePageId preRightId = page.getRightSiblingId();
+		
+		page.setRightSiblingId(right.getId());
+		page.setParentId(parentPage.getId());
+		
+		right.setLeftSiblingId(page.getId());
+		right.setParentId(parentPage.getId());
+		right.setRightSiblingId(preRightId);
+		if(preRightId!=null) {
+			BTreeLeafPage preRight = (BTreeLeafPage) getPage(tid,dirtypages,preRightId,Permissions.READ_WRITE);
+			preRight.setLeftSiblingId(right.getId());
+			dirtypages.put(preRightId, preRight);
+		}
+		
+		dirtypages.put(page.getId(),page);
+		dirtypages.put(right.getId(), right);
+		dirtypages.put(parentPage.getId(), parentPage);
+		
+		if(field.compare(Op.GREATER_THAN_OR_EQ, tupleToCopy[0].getField(keyField)))
+			return right;
+		else 
+			return page;
+		
+		
 		
 	}
 	
