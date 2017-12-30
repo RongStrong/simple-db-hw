@@ -201,11 +201,12 @@ public class BTreeFile implements DbFile {
 		if(pid.pgcateg() == BTreePageId.LEAF) {
 			return (BTreeLeafPage) (this.getPage(tid, dirtypages, pid, perm));
 		}
+
 		Iterator<BTreeEntry> it = ((BTreeInternalPage) this.getPage(tid, dirtypages, pid, Permissions.READ_ONLY)).iterator();
 		BTreeEntry et = null;
 		while(it.hasNext()) {
 			et = it.next();
-			if(true) {
+			if(f==null || f.compare(Predicate.Op.LESS_THAN_OR_EQ, et.getKey())) {
 				return(findLeafPage(tid, dirtypages, et.getLeftChild(), perm, f));
 			}
 		}
@@ -301,8 +302,6 @@ public class BTreeFile implements DbFile {
 			return right;
 		else 
 			return page;
-		
-		
 		
 	}
 	
