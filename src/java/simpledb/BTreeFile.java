@@ -276,6 +276,7 @@ public class BTreeFile implements DbFile {
 		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, 
 			page.getParentId(), tupleToCopy[0].getField(keyField));
 		BTreeEntry entry = new BTreeEntry(tupleToCopy[0].getField(keyField),page.getId(),right.getId());
+		
 		parentPage.insertEntry(entry);
 		
 		BTreePageId preRightId = page.getRightSiblingId();
@@ -339,7 +340,40 @@ public class BTreeFile implements DbFile {
 		// the parent pointers of all the children moving to the new page.  updateParentPointers()
 		// will be useful here.  Return the page into which an entry with the given key field
 		// should be inserted.
-		return null;
+		BTreeInternalPage right = (BTreeInternalPage) getEmptyPage(tid, dirtypages, BTreePageId.INTERNAL);
+		Iterator<BTreeEntry> it = page.reverseIterator();
+		int lenRight = (page.getNumEntries()+1)/2;
+		BTreeEntry[] entryToCopy = new BTreeEntry[lenRight];
+		for(int i = lenRight-1;i>=0;i--) {
+			entryToCopy[i] = it.next();
+		}
+		for(int i=0;i<lenRight;i++) {
+			page.deleteKeyAndRightChild(entryToCopy[i]);
+		}
+		updateParentPointer(tid,dirtypages,right.getId(),entryToCopy[0].getRightChild());
+		for(int i=1;i<lenRight;i++) {
+			right.insertEntry(entryToCopy[i]);
+			updateParentPointer(tid,dirtypages,right.getId(),entryToCopy[i].getRightChild());
+		}
+		BTreeEntry entry = new BTreeEntry(entryToCopy[0].getKey(),page.getId(),right.getId());
+		
+		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, 
+				page.getParentId(), entry.getKey());
+		updateParentPointer(tid,dirtypages,parentPage.getId(),right.getId());
+
+		parentPage.insertEntry(entry);
+		
+		//parentPage.updateEntry(entry);
+		
+		dirtypages.put(page.getId(),page);
+		dirtypages.put(right.getId(), right);
+		dirtypages.put(parentPage.getId(), parentPage);
+		
+		
+		if(field.compare(Op.GREATER_THAN, entryToCopy[0].getKey()))
+			return right;
+		else 
+			return page;
 	}
 	
 	/**
