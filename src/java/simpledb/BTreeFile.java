@@ -931,6 +931,24 @@ public class BTreeFile implements DbFile {
 		// and make the right page available for reuse
 		// Delete the entry in the parent corresponding to the two pages that are merging -
 		// deleteParentEntry() will be useful here
+		
+		BTreeEntry e = leftPage.reverseIterator().next();
+		parentEntry.setLeftChild(e.getRightChild());
+		e = rightPage.iterator().next();
+		parentEntry.setRightChild(e.getLeftChild());
+		deleteParentEntry(tid, dirtypages, leftPage, parent, parentEntry);
+		leftPage.insertEntry(parentEntry);
+		leftPage.updateEntry(parentEntry);
+		while(rightPage.getNumEntries() > 0) {
+			e = rightPage.iterator().next();
+			rightPage.deleteKeyAndLeftChild(e);
+			leftPage.insertEntry(e);
+			leftPage.updateEntry(e);
+		}
+		dirtypages.put(parent.getId(), parent);
+		dirtypages.put(leftPage.getId(), leftPage);
+		setEmptyPage(tid, dirtypages, rightPage.getId().getPageNumber());
+		
 	}
 	
 	/**
