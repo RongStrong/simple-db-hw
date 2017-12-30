@@ -781,15 +781,20 @@ public class BTreeFile implements DbFile {
 		
 		while(page.getNumEntries() < leftSibling.getNumEntries()) {
 			Iterator<BTreeEntry> it = leftSibling.reverseIterator();
+			Field parentKey = parentEntry.getKey();
 			BTreeEntry e1 = it.next();
 			it = page.iterator();
+			leftSibling.deleteKeyAndRightChild(e1);
+			
 			parentEntry.setKey(e1.getKey());
+			parent.updateEntry(parentEntry);
+			e1.setKey(parentKey);
 			e1.setLeftChild(e1.getRightChild());
 			e1.setRightChild(it.next().getLeftChild());
-			leftSibling.deleteKeyAndRightChild(e1);
+			
 			page.insertEntry(e1);
-			page.updateEntry(e1);
-			parent.updateEntry(parentEntry);
+			//page.updateEntry(e1);
+			
 		}
 		dirtypages.put(page.getId(), page);
 		dirtypages.put(leftSibling.getId(), leftSibling);
@@ -831,14 +836,17 @@ public class BTreeFile implements DbFile {
 		
 		while(page.getNumEntries() < rightSibling.getNumEntries()) {
 			Iterator<BTreeEntry> it = rightSibling.iterator();
+			Field parentKey = parentEntry.getKey();
 			BTreeEntry e1 = it.next();
 			it = page.reverseIterator();
+			
 			parentEntry.setKey(e1.getKey());
+			e1.setKey(parentKey);
 			e1.setRightChild(e1.getLeftChild());
 			e1.setLeftChild(it.next().getRightChild());
 			rightSibling.deleteKeyAndLeftChild(e1);
 			page.insertEntry(e1);
-			page.updateEntry(e1);
+			//page.updateEntry(e1);
 			parent.updateEntry(parentEntry);
 		}
 		dirtypages.put(page.getId(), page);
@@ -936,6 +944,8 @@ public class BTreeFile implements DbFile {
 		parentEntry.setLeftChild(e.getRightChild());
 		e = rightPage.iterator().next();
 		parentEntry.setRightChild(e.getLeftChild());
+		dirtypages.put(parent.getId(), parent);
+		dirtypages.put(leftPage.getId(), leftPage);
 		deleteParentEntry(tid, dirtypages, leftPage, parent, parentEntry);
 		leftPage.insertEntry(parentEntry);
 		leftPage.updateEntry(parentEntry);
@@ -945,8 +955,7 @@ public class BTreeFile implements DbFile {
 			leftPage.insertEntry(e);
 			leftPage.updateEntry(e);
 		}
-		dirtypages.put(parent.getId(), parent);
-		dirtypages.put(leftPage.getId(), leftPage);
+		updateParentPointers(tid, dirtypages, leftPage);
 		setEmptyPage(tid, dirtypages, rightPage.getId().getPageNumber());
 		
 	}
