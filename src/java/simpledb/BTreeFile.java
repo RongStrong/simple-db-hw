@@ -780,25 +780,23 @@ public class BTreeFile implements DbFile {
 		// pointers of all children in the entries that were moved.
 		
 		while(page.getNumEntries() < leftSibling.getNumEntries()) {
-			Iterator<BTreeEntry> it = leftSibling.iterator();
-			
-			BTreeEntry er;
-			BTreeEntry el = null;
-			while(it.hasNext()) {
-				el = it.next();
-			}
+			Iterator<BTreeEntry> it = leftSibling.reverseIterator();
+			BTreeEntry e1 = it.next();
 			it = page.iterator();
-			er = it.next();
-			leftSibling.deleteKeyAndRightChild(el);
-			el.setLeftChild(leftSibling.getId());
-			el.setRightChild(page.getId());
-			parent.insertEntry(el);
-			parent.deleteKeyAndRightChild(parentEntry);
-			
-			page.insertEntry(parentEntry);
-			parent.updateEntry(el);
-			page.updateEntry(parentEntry);
+			parentEntry.setKey(e1.getKey());
+			e1.setLeftChild(e1.getRightChild());
+			e1.setRightChild(it.next().getLeftChild());
+			leftSibling.deleteKeyAndRightChild(e1);
+			page.insertEntry(e1);
+			page.updateEntry(e1);
+			parent.updateEntry(parentEntry);
 		}
+		dirtypages.put(page.getId(), page);
+		dirtypages.put(leftSibling.getId(), leftSibling);
+		dirtypages.put(parent.getId(), parent);
+
+		updateParentPointers(tid, dirtypages, page);
+		updateParentPointers(tid, dirtypages, leftSibling);
 		
 		
 		
@@ -830,6 +828,25 @@ public class BTreeFile implements DbFile {
 		// that the entries are evenly distributed. Be sure to update
 		// the corresponding parent entry. Be sure to update the parent
 		// pointers of all children in the entries that were moved.
+		
+		while(page.getNumEntries() < rightSibling.getNumEntries()) {
+			Iterator<BTreeEntry> it = rightSibling.iterator();
+			BTreeEntry e1 = it.next();
+			it = page.reverseIterator();
+			parentEntry.setKey(e1.getKey());
+			e1.setRightChild(e1.getLeftChild());
+			e1.setLeftChild(it.next().getRightChild());
+			rightSibling.deleteKeyAndLeftChild(e1);
+			page.insertEntry(e1);
+			page.updateEntry(e1);
+			parent.updateEntry(parentEntry);
+		}
+		dirtypages.put(page.getId(), page);
+		dirtypages.put(rightSibling.getId(), rightSibling);
+		dirtypages.put(parent.getId(), parent);
+
+		updateParentPointers(tid, dirtypages, page);
+		updateParentPointers(tid, dirtypages, rightSibling);
 	}
 	
 	/**
