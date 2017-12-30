@@ -201,11 +201,12 @@ public class BTreeFile implements DbFile {
 		if(pid.pgcateg() == BTreePageId.LEAF) {
 			return (BTreeLeafPage) (this.getPage(tid, dirtypages, pid, perm));
 		}
+
 		Iterator<BTreeEntry> it = ((BTreeInternalPage) this.getPage(tid, dirtypages, pid, Permissions.READ_ONLY)).iterator();
 		BTreeEntry et = null;
 		while(it.hasNext()) {
 			et = it.next();
-			if(true) {
+			if(f==null || f.compare(Predicate.Op.LESS_THAN_OR_EQ, et.getKey())) {
 				return(findLeafPage(tid, dirtypages, et.getLeftChild(), perm, f));
 			}
 		}
@@ -670,6 +671,35 @@ public class BTreeFile implements DbFile {
         // Move some of the tuples from the sibling to the page so
 		// that the tuples are evenly distributed. Be sure to update
 		// the corresponding parent entry.
+		
+		while(page.getNumTuples() < sibling.getNumTuples()) {
+			Tuple t = null;
+			if(isRightSibling) {
+				Iterator<Tuple> it = sibling.iterator();
+				t = it.next();
+				//t = sibling.getTuple(0);
+				
+				sibling.deleteTuple(t);
+				page.insertTuple(t);
+				entry.setKey(t.getField(this.keyField));
+				
+			}
+			else {
+				Iterator<Tuple> it = sibling.iterator();
+				while(it.hasNext()) {
+					t = it.next();
+				}
+				//t = sibling.getTuple(sibling.getNumTuples() - 1);
+				
+				sibling.deleteTuple(t);
+				page.insertTuple(t);
+				entry.setKey(t.getField(this.keyField));
+			}
+		}
+		
+		
+		
+		
 	}
 
 	/**
@@ -750,6 +780,30 @@ public class BTreeFile implements DbFile {
 		// that the entries are evenly distributed. Be sure to update
 		// the corresponding parent entry. Be sure to update the parent
 		// pointers of all children in the entries that were moved.
+		
+		while(page.getNumEntries() < leftSibling.getNumEntries()) {
+			Iterator<BTreeEntry> it = leftSibling.iterator();
+			
+			BTreeEntry er;
+			BTreeEntry el = null;
+			while(it.hasNext()) {
+				el = it.next();
+			}
+			it = page.iterator();
+			er = it.next();
+			leftSibling.deleteKeyAndRightChild(el);
+			el.setLeftChild(leftSibling.getId());
+			el.setRightChild(page.getId());
+			parent.insertEntry(el);
+			parent.deleteKeyAndRightChild(parentEntry);
+			
+			page.insertEntry(parentEntry);
+			parent.updateEntry(el);
+			page.updateEntry(parentEntry);
+		}
+		
+		
+		
 	}
 	
 	/**
