@@ -467,6 +467,30 @@ public class LogFile {
             synchronized(this) {
                 preAppend();
                 // some code goes here
+                raf.seek(tidToFirstLogRecord.get(tid));
+                int tp = raf.readInt();
+                long currenttid = raf.readLong();
+                while(currenttid == tid.getId()) {
+                		if(tp == UPDATE_RECORD) {
+                			Page p = this.readPageData(raf);
+                			Database.getBufferPool().discardPage(p.getId());
+                			Database.getCatalog().getDatabaseFile(p.getId().getTableId());
+                			p.markDirty(false, null);
+                			this.readPageData(raf);
+                			
+                		}
+                		else if(tp == CHECKPOINT_RECORD) {
+                			int num = raf.readInt();
+                			for(int i = 0; i < num; i++) {
+                				raf.readLong();
+                				raf.readLong();
+                			}
+                		}
+                		raf.readLong();
+            			tp = raf.readInt();
+            			currenttid = raf.readLong();
+                }
+                
             }
         }
     }
