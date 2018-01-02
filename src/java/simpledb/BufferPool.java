@@ -276,6 +276,8 @@ public class BufferPool {
             Page pg = pgBufferPool.get(pid);
             if (pg.isDirty() != null) {
                 // then write back
+            	Database.getLogFile().logWrite(pg.isDirty(), pg.getBeforeImage(), pg);
+                Database.getLogFile().force();
                 DbFile tb = Database.getCatalog().getDatabaseFile(pg.getId().getTableId());
                 tb.writePage(pg);
                 pg.markDirty(false, null);
@@ -292,6 +294,9 @@ public class BufferPool {
         if (page2flush != null) {
             for (PageId p : page2flush) {
                 flushPage(p);
+                // use current page contents as the before-image
+                // for the next transaction that modifies this page.
+                pgBufferPool.get(p).setBeforeImage();
             }
         }
     }
