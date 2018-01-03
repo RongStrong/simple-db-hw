@@ -467,15 +467,17 @@ public class LogFile {
             synchronized(this) {
                 preAppend();
                 // some code goes here
-                raf.seek(tidToFirstLogRecord.get(tid));
-                int tp = raf.readInt();
-                long currenttid = raf.readLong();
-                while(currenttid == tid.getId()) {
-                		if(tp == UPDATE_RECORD) {
+                raf.seek(tidToFirstLogRecord.get(tid.getId()));
+                try {
+                
+                while(true) {
+                	int tp = raf.readInt();
+                    long currenttid = raf.readLong();
+                		if(tp == UPDATE_RECORD && currenttid == tid.getId()) {
                 			Page p = this.readPageData(raf);
                 			Database.getBufferPool().discardPage(p.getId());
-                			Database.getCatalog().getDatabaseFile(p.getId().getTableId());
-                			p.markDirty(false, null);
+                			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
+                			//p.markDirty(false, null);
                 			this.readPageData(raf);
                 			
                 		}
@@ -487,8 +489,9 @@ public class LogFile {
                 			}
                 		}
                 		raf.readLong();
-            			tp = raf.readInt();
-            			currenttid = raf.readLong();
+                }
+                }catch(EOFException e) {
+                	return;
                 }
                 
             }
