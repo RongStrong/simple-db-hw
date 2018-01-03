@@ -274,6 +274,7 @@ public class LogTest extends SimpleDbTestBase {
 
     @Test public void TestCommitAbortCommitCrash()
             throws IOException, DbException, TransactionAbortedException {
+    	System.out.println("TestCommitAbortCommitCrash................................BEGIN");
         setup();
         doInsert(hf1, 1, 2);
 
@@ -308,8 +309,11 @@ public class LogTest extends SimpleDbTestBase {
         look(hf1, t, 4, false);
         look(hf1, t, 5, true);
         look(hf1, t, 6, false);
+        System.out.println("Test............................................................1");
         look(hf1, t, 7, true);
+        System.out.println("Test............................................................2");
         t.commit();
+        System.out.println("TestCommitAbortCommitCrash END");
     }
 
     @Test public void TestOpenCrash()
