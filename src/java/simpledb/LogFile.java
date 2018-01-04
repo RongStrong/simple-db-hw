@@ -555,6 +555,7 @@ public class LogFile {
                 				System.out.print(tid + " ");
                 			System.out.println("");
                 		}
+                		offset = raf.getFilePointer();
                 		try {
                 			while(true) {
                 				int tp = raf.readInt();
@@ -589,6 +590,51 @@ public class LogFile {
 
                 			}
                 		}catch(EOFException e) {}
+                		raf.seek(offset);
+                		try {
+                			while(true) {
+                				int tp = raf.readInt();
+                				long currenttid = raf.readLong();
+                				if(tp == UPDATE_RECORD) {
+                					if(losers.containsKey(currenttid)) {
+                						Page p = this.readPageData(raf);
+                            			Database.getBufferPool().discardPage(p.getId());
+                            			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
+                            			//p.markDirty(false, null);
+                            			this.readPageData(raf);
+                            			raf.readLong();
+                            			
+                					}
+                					else {
+                						this.readPageData(raf);
+                    					Page p = this.readPageData(raf);
+                            			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
+                            			raf.readLong();
+                            			
+                					}
+                				
+                				}
+                				else if(tp == CHECKPOINT_RECORD) {
+                					int num = raf.readInt();
+                        			for(int i = 0; i < num; i++) {
+                        				raf.readLong();
+                        				raf.readLong();
+                        			}
+                        			raf.readLong();
+                				}
+                				
+                				else {
+                					raf.readLong();
+                				}
+                					
+                				for(Long tid : losers.keySet())
+                    				System.out.print(tid +  " ");
+                				System.out.println("");
+                			
+
+                			}
+                		}catch(EOFException e) {}
+                		/*
                 		for(Long tid : losers.keySet()) {
                 			raf.seek(losers.get(tid));
                 			try {
@@ -596,23 +642,15 @@ public class LogFile {
                 					int tp = raf.readInt();
                             		long currenttid = raf.readLong();
                             		if(tp == UPDATE_RECORD && currenttid == tid) {
-                            			Page p = this.readPageData(raf);
-                            			Database.getBufferPool().discardPage(p.getId());
-                            			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
-                            			//p.markDirty(false, null);
-                            			this.readPageData(raf);
+                            			
                             		}
                             		else if(tp == CHECKPOINT_RECORD) {
-                            			int num = raf.readInt();
-                            			for(int i = 0; i < num; i++) {
-                            				raf.readLong();
-                            				raf.readLong();
-                            			}
+                            			
                             		}
                             		raf.readLong();
                 				}
                 			}catch(EOFException e) {}
-                		}
+                		}*/
                 		
                 }catch(EOFException e) {
                 		return;
