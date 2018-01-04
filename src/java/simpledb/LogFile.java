@@ -130,7 +130,7 @@ public class LogFile {
             raf.seek(0);
             raf.setLength(0);
             raf.writeLong(NO_CHECKPOINT_ID);
-            System.out.println(NO_CHECKPOINT_ID);
+            
             raf.seek(raf.length());
             currentOffset = raf.getFilePointer();
         }
@@ -160,11 +160,11 @@ public class LogFile {
                 rollback(tid);
 
                 raf.writeInt(ABORT_RECORD);
-                System.out.println(ABORT_RECORD);
+                
                 raf.writeLong(tid.getId());
-                System.out.println(tid.getId());
+                
                 raf.writeLong(currentOffset);
-                System.out.println(currentOffset);
+                
                 currentOffset = raf.getFilePointer();
                 force();
                 tidToFirstLogRecord.remove(tid.getId());
@@ -183,11 +183,11 @@ public class LogFile {
         //should we verify that this is a live transaction?
 
         raf.writeInt(COMMIT_RECORD);
-        System.out.println(COMMIT_RECORD);
+        
         raf.writeLong(tid.getId());
-        System.out.println(tid.getId());
+       
         raf.writeLong(currentOffset);
-        System.out.println(currentOffset);
+        
         currentOffset = raf.getFilePointer();
         force();
         tidToFirstLogRecord.remove(tid.getId());
@@ -215,14 +215,14 @@ public class LogFile {
            start offset
         */
         raf.writeInt(UPDATE_RECORD);
-        System.out.println(UPDATE_RECORD);
+        
         raf.writeLong(tid.getId());
-        System.out.println(tid.getId());
+        
 
         writePageData(raf,before);
         writePageData(raf,after);
         raf.writeLong(currentOffset);
-        System.out.println(currentOffset);
+        
         currentOffset = raf.getFilePointer();
 
         Debug.log("WRITE OFFSET = " + currentOffset);
@@ -244,21 +244,21 @@ public class LogFile {
         String idClassName = pid.getClass().getName();
 
         raf.writeUTF(pageClassName);
-        System.out.println(pageClassName);
+        
         raf.writeUTF(idClassName);
-        System.out.println(idClassName);
+        
 
         raf.writeInt(pageInfo.length);
-        System.out.println(pageInfo.length);
+        
         for (int i = 0; i < pageInfo.length; i++) {
             raf.writeInt(pageInfo[i]);
-            System.out.println(pageInfo[i]);
+            
         }
         byte[] pageData = p.getPageData();
         raf.writeInt(pageData.length);
-        System.out.println(pageData.length);
+        
         raf.write(pageData);
-        System.out.println(pageData);
+        
         //        Debug.log ("WROTE PAGE DATA, CLASS = " + pageClassName + ", table = " +  pid.getTableId() + ", page = " + pid.pageno());
     }
 
@@ -324,11 +324,11 @@ public class LogFile {
         }
         preAppend();
         raf.writeInt(BEGIN_RECORD);
-        System.out.println(BEGIN_RECORD);
+        
         raf.writeLong(tid.getId());
-        System.out.println(tid.getId());
+        
         raf.writeLong(currentOffset);
-        System.out.println(currentOffset);
+        
         tidToFirstLogRecord.put(tid.getId(), currentOffset);
         currentOffset = raf.getFilePointer();
 
@@ -349,21 +349,21 @@ public class LogFile {
                 Database.getBufferPool().flushAllPages();
                 startCpOffset = raf.getFilePointer();
                 raf.writeInt(CHECKPOINT_RECORD);
-                //System.out.println(CHECKPOINT_RECORD);
+                
                 raf.writeLong(-1); //no tid , but leave space for convenience
-                //System.out.println(-1);
+                
 
                 //write list of outstanding transactions
                 raf.writeInt(keys.size());
-                System.out.println(keys.size());
+                
                 while (els.hasNext()) {
                     Long key = els.next();
                     Debug.log("WRITING CHECKPOINT TRANSACTION ID: " + key);
                     raf.writeLong(key);
-                    System.out.println(key);
+                    
                     //Debug.log("WRITING CHECKPOINT TRANSACTION OFFSET: " + tidToFirstLogRecord.get(key));
                     raf.writeLong(tidToFirstLogRecord.get(key));
-                    System.out.println(tidToFirstLogRecord.get(key));
+                    
                 }
 
                 //once the CP is written, make sure the CP location at the
@@ -371,10 +371,10 @@ public class LogFile {
                 endCpOffset = raf.getFilePointer();
                 raf.seek(0);
                 raf.writeLong(startCpOffset);
-                System.out.println(startCpOffset);
+                
                 raf.seek(endCpOffset);
                 raf.writeLong(currentOffset);
-                System.out.println(currentOffset);
+                
                 currentOffset = raf.getFilePointer();
                 //Debug.log("CP OFFSET = " + currentOffset);
             }
@@ -584,9 +584,9 @@ public class LogFile {
                 			}
                 			raf.readLong();
                 			//raf.readLong();
-                			for(Long tid : losers.keySet())
+                			/*for(Long tid : losers.keySet())
                 				System.out.print(tid + " ");
-                			System.out.println("");
+                			System.out.println("");*/
                 		}
                 		offset = raf.getFilePointer();
                 		try {
@@ -629,9 +629,7 @@ public class LogFile {
                 				//		raf.readLong();
                 				//}
                 					
-                				for(Long tid : losers.keySet())
-                    				System.out.print(tid +  " ");
-                				System.out.println("");
+                				
                 			}
                 		}catch(EOFException e) {}
                 		raf.seek(offset);
@@ -671,9 +669,7 @@ public class LogFile {
                 					raf.readLong();
                 				}
                 					
-                				for(Long tid : losers.keySet())
-                    				System.out.print(tid +  " ");
-                				System.out.println("");
+                				
                 			
 
                 			}/*
