@@ -285,7 +285,7 @@ public class LogTest extends SimpleDbTestBase {
         // only T1 and T3 data should be there
 
         doInsert(hf1, 5, -1);
-        dontInsert(hf1, 6, -1);
+        //dontInsert(hf1, 6, -1);
         doInsert(hf1, 7, -1);
 
         Transaction t = new Transaction();

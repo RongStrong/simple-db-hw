@@ -493,33 +493,24 @@ public class LogFile {
             synchronized(this) {
                 preAppend();
                 // some code goes here
-                raf.seek(tidToFirstLogRecord.get(tid.getId()));
-                try {
-                
-                while(true) {
-                		int tp = raf.readInt();
-                		long currenttid = raf.readLong();
-                		if(tp == UPDATE_RECORD && currenttid == tid.getId()) {
-                			Page p = this.readPageData(raf);
-                			Database.getBufferPool().discardPage(p.getId());
-                			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
-                			//p.markDirty(false, null);
-                			this.readPageData(raf);
-                			
-                		}
-                		else if(tp == CHECKPOINT_RECORD) {
-                			int num = raf.readInt();
-                			for(int i = 0; i < num; i++) {
-                				raf.readLong();
-                				raf.readLong();
-                			}
-                		}
-                		raf.readLong();
+                long begin = tidToFirstLogRecord.get(tid.getId());
+                raf.seek(raf.length()-LONG_SIZE);
+                long curLoca = raf.readLong(); 
+                while(curLoca>begin) {
+                	raf.seek(curLoca);
+            		int tp = raf.readInt();
+            		long currenttid = raf.readLong();
+            		if(tp == UPDATE_RECORD && currenttid == tid.getId()) {
+            			Page p = this.readPageData(raf);
+            			Database.getBufferPool().discardPage(p.getId());
+            			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
+            			p.markDirty(false, null);
+            		}
+
+            		raf.seek(curLoca-LONG_SIZE);
+            		curLoca = raf.readLong();
                 }
-                }catch(EOFException e) {
-                	return;
-                }
-                
+                raf.seek(currentOffset);
             }
         }
     }
