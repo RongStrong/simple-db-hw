@@ -287,6 +287,8 @@ public class LogTest extends SimpleDbTestBase {
         doInsert(hf1, 5, -1);
         //dontInsert(hf1, 6, -1);
         doInsert(hf1, 7, -1);
+        doInsert(hf1, 77, -1);
+        doInsert(hf1, 777, -1);
 
         Transaction t = new Transaction();
         t.start();
@@ -294,21 +296,28 @@ public class LogTest extends SimpleDbTestBase {
         look(hf1, t, 5, true);
         look(hf1, t, 6, false);
         look(hf1, t, 7, true);
+        look(hf1, t, 77, true);
+        look(hf1, t, 777, true);
         t.commit();
 
         // *** Test:
         // crash: should not change visible data
 
+        System.out.println("CRASH & RECOVER");
         crash();
+        System.out.println("END CRASH & RECOVER");
 
         t = new Transaction();
         t.start();
+        
         look(hf1, t, 1, true); 
         look(hf1, t, 2, true);
         look(hf1, t, 3, false);
         look(hf1, t, 4, false);
         look(hf1, t, 5, true);
         look(hf1, t, 6, false);
+        look(hf1, t, 77, true);
+        
         System.out.println("Test............................................................1");
         look(hf1, t, 7, true);
         System.out.println("Test............................................................2");
