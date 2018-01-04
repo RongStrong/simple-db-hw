@@ -475,7 +475,7 @@ public class LogFile {
         raf.seek(raf.length());
         newFile.delete();
 
-        currentOffset = raf.getFilePointer();
+        currentOffset = raf.getFilePointer(); 
         //print();
     }
 
