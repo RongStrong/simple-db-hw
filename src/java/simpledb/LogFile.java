@@ -349,9 +349,9 @@ public class LogFile {
                 Database.getBufferPool().flushAllPages();
                 startCpOffset = raf.getFilePointer();
                 raf.writeInt(CHECKPOINT_RECORD);
-                System.out.println(CHECKPOINT_RECORD);
+                //System.out.println(CHECKPOINT_RECORD);
                 raf.writeLong(-1); //no tid , but leave space for convenience
-                System.out.println(-1);
+                //System.out.println(-1);
 
                 //write list of outstanding transactions
                 raf.writeInt(keys.size());
