@@ -514,6 +514,34 @@ public class LogFile {
             }
         }
     }
+    
+    public void rollbackhelper(long tid)
+            throws NoSuchElementException, IOException {
+            synchronized (Database.getBufferPool()) {
+                synchronized(this) {
+                    preAppend();
+                    // some code goes here
+                    long begin = tidToFirstLogRecord.get(tid);
+                    raf.seek(raf.length()-LONG_SIZE);
+                    long curLoca = raf.readLong(); 
+                    while(curLoca>begin) {
+                    	raf.seek(curLoca);
+                		int tp = raf.readInt();
+                		long currenttid = raf.readLong();
+                		if(tp == UPDATE_RECORD && currenttid == tid) {
+                			Page p = this.readPageData(raf);
+                			Database.getBufferPool().discardPage(p.getId());
+                			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
+                			p.markDirty(false, null);
+                		}
+
+                		raf.seek(curLoca-LONG_SIZE);
+                		curLoca = raf.readLong();
+                    }
+                    raf.seek(currentOffset);
+                }
+            }
+        }
 
     /** Shutdown the logging system, writing out whatever state
         is necessary so that start up can happen quickly (without
@@ -545,12 +573,17 @@ public class LogFile {
                 		if(offset != -1) {
                 			raf.seek(offset);
                 			raf.readInt();
+                			raf.readLong();
                 			int num = raf.readInt();
+                			long k1,v1;
                 			for(int i = 0; i < num; i++) {
-                				losers.put(raf.readLong(), raf.readLong());
+                				k1 = raf.readLong();
+                				v1 = raf.readLong();
+                				losers.put(k1, v1);
+                				tidToFirstLogRecord.put(k1, v1);
                 			}
                 			raf.readLong();
-                			raf.readLong();
+                			//raf.readLong();
                 			for(Long tid : losers.keySet())
                 				System.out.print(tid + " ");
                 			System.out.println("");
@@ -564,10 +597,11 @@ public class LogFile {
                 					this.readPageData(raf);
                 					Page p = this.readPageData(raf);
                         			Database.getCatalog().getDatabaseFile(p.getId().getTableId()).writePage(p);
-                        			if(!losers.containsKey(currenttid))
-                        				losers.put(currenttid, raf.readLong());
-                        			else
-                        				raf.readLong();
+                        			Database.getBufferPool().discardPage(p.getId());
+                        			//if(!losers.containsKey(currenttid))
+                        			//	losers.put(currenttid, raf.readLong());
+                        			//else
+                        			raf.readLong();
                 				
                 				}
                 				else if(tp == COMMIT_RECORD) {
@@ -575,24 +609,34 @@ public class LogFile {
                 						losers.remove(currenttid);
                 					raf.readLong();
                 				}
-                				else {
-                					if(!losers.containsKey(currenttid))
-                						losers.put(currenttid, raf.readLong());
-                					else
-                						raf.readLong();
-                					
+                				else if(tp == ABORT_RECORD) {
+                					currentOffset = raf.getFilePointer(); 
+                					rollbackhelper(currenttid);
+                					losers.remove(currenttid);
+                					raf.readLong();
                 				}
+                				else if(tp == BEGIN_RECORD) {
+                					currentOffset = raf.readLong();
+                					if(!losers.containsKey(currenttid))
+                						losers.put(currenttid, currentOffset);
+                					if(!tidToFirstLogRecord.containsKey(currenttid))
+                						tidToFirstLogRecord.put(currenttid, currentOffset);
+                				}
+                				//else {
+                					//if(!losers.containsKey(currenttid))
+                					//	losers.put(currenttid, raf.readLong());
+                					//else
+                				//		raf.readLong();
+                				//}
                 					
                 				for(Long tid : losers.keySet())
                     				System.out.print(tid +  " ");
                 				System.out.println("");
-                			
-
                 			}
                 		}catch(EOFException e) {}
                 		raf.seek(offset);
                 		try {
-                			while(true) {
+                			/*while(true) {
                 				int tp = raf.readInt();
                 				long currenttid = raf.readLong();
                 				if(tp == UPDATE_RECORD) {
@@ -632,7 +676,7 @@ public class LogFile {
                 				System.out.println("");
                 			
 
-                			}
+                			}/*
                 		}catch(EOFException e) {}
                 		/*
                 		for(Long tid : losers.keySet()) {
@@ -651,11 +695,12 @@ public class LogFile {
                 				}
                 			}catch(EOFException e) {}
                 		}*/
-                		
-                }catch(EOFException e) {
-                		return;
-                }
+                		for(Long tid : losers.keySet()) {
+                			rollbackhelper(tid);
+                		}
+                }catch(EOFException e) {}
                 
+                }catch(EOFException e) {}
                 
             }
          }

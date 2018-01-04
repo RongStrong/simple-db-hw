@@ -316,11 +316,12 @@ public class LogTest extends SimpleDbTestBase {
         look(hf1, t, 4, false);
         look(hf1, t, 5, true);
         look(hf1, t, 6, false);
-        look(hf1, t, 77, true);
+        
         
         System.out.println("Test............................................................1");
         look(hf1, t, 7, true);
         System.out.println("Test............................................................2");
+        look(hf1, t, 77, true);
         t.commit();
         System.out.println("TestCommitAbortCommitCrash END");
     }
