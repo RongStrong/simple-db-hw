@@ -20,8 +20,22 @@ public class IntHistogram {
      * @param min The minimum integer value that will ever be passed to this class for histogramming
      * @param max The maximum integer value that will ever be passed to this class for histogramming
      */
+	
+	private int buckets;
+	private int min;
+	private int max;
+	private int[] bucket;
+	private double width;
+	private int ntups;
     public IntHistogram(int buckets, int min, int max) {
     	// some code goes here
+    	this.buckets=buckets;
+    	this.min=min;
+    	this.max=max;
+    	this.width=(max-min+1)*1.0/buckets;
+    	this.bucket=new int[buckets];
+    	this.ntups=0;
+    	
     }
 
     /**
@@ -30,6 +44,8 @@ public class IntHistogram {
      */
     public void addValue(int v) {
     	// some code goes here
+    	bucket[(int)((v-min)/width)]++;
+    	ntups++;
     }
 
     /**
@@ -45,7 +61,69 @@ public class IntHistogram {
     public double estimateSelectivity(Predicate.Op op, int v) {
 
     	// some code goes here
-        return -1.0;
+//    	if(op.equals(Predicate.Op.EQUALS)){
+//    		if(v<=min||v>=max) return 0;
+//    		int index=(int)((v-min)/width);
+//    		int h=bucket[index];
+//    		return (h/width)/ntups;
+//    	}
+//    	else if(op.equals(Predicate.Op.GREATER_THAN)){
+//    		if(v<=min) return 1;
+//    		if(v>=max) return 0;
+//    		int index=(int)((v-min)/width);
+//    		int h=bucket[index];
+//    		double b_right=min+(index+1)*width;
+//    		double b_num=h*((b_right-v)/width);
+//    		double sum=0;
+//    		for(int i=index+1;i<bucket.length;i++){
+//    			sum+=bucket[i];
+//    		}
+//    		
+//    		return (sum+b_num)*1.0/ntups;
+//    	}
+    	if(op.equals(Predicate.Op.LESS_THAN)){
+    		if(v<=min) return 0;
+    		if(v>=max) return 1;
+    		int index=(int)((v-min)/width);
+    		int h=bucket[index];
+    		double b_left=min+index*width;
+    		double b_num=h*((v-b_left)/width);
+    		double sum=0;
+    		for(int i=0;i<index;i++){
+    			sum+=bucket[i];
+    		}
+    		
+    		return (sum+b_num)*1.0/ntups;
+    	}
+//    	else if(op.equals(Predicate.Op.GREATER_THAN_OR_EQ)){
+//    		return estimateSelectivity(Predicate.Op.GREATER_THAN, v-1);
+//    	}
+//    	else if(op.equals(Predicate.Op.LESS_THAN_OR_EQ)){
+//    		return estimateSelectivity(Predicate.Op.LESS_THAN, v+1);
+//    	}
+//    	else if(op.equals(Predicate.Op.NOT_EQUALS)){
+//    		return 1-estimateSelectivity(Predicate.Op.EQUALS, v);
+//    	}
+
+    	if (op.equals(Predicate.Op.LESS_THAN_OR_EQ)) {
+            return estimateSelectivity(Predicate.Op.LESS_THAN, v+1);
+        }
+        if (op.equals(Predicate.Op.GREATER_THAN)) {
+            return 1-estimateSelectivity(Predicate.Op.LESS_THAN_OR_EQ, v);
+        }
+        if (op.equals(Predicate.Op.GREATER_THAN_OR_EQ)) {
+            return estimateSelectivity(Predicate.Op.GREATER_THAN, v-1);
+        }
+        if (op.equals(Predicate.Op.EQUALS)) {
+            return estimateSelectivity(Predicate.Op.LESS_THAN_OR_EQ, v) -
+                    estimateSelectivity(Predicate.Op.LESS_THAN, v);
+        }
+        if (op.equals(Predicate.Op.NOT_EQUALS)) {
+            return 1 - estimateSelectivity(Predicate.Op.EQUALS, v);
+        }
+        return 0.0;
+	
+       
     }
     
     /**
@@ -67,6 +145,8 @@ public class IntHistogram {
      */
     public String toString() {
         // some code goes here
-        return null;
+        
+        return String.format("IntHistgram(buckets=%d, min=%d, max=%d",
+                bucket.length, min, max);
     }
 }
