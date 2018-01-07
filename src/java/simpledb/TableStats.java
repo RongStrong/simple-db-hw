@@ -76,6 +76,10 @@ public class TableStats {
      *            The cost per page of IO. This doesn't differentiate between
      *            sequential-scan IO and disk seeks.
      */
+    private DbFile file;
+    private int tableid;
+    private int ioCostPerPage;
+    private Integer ntups;
     public TableStats(int tableid, int ioCostPerPage) {
         // For this function, you'll have to get the
         // DbFile for the table in question,
@@ -85,6 +89,10 @@ public class TableStats {
         // necessarily have to (for example) do everything
         // in a single scan of the table.
         // some code goes here
+    	this.tableid=tableid;
+    	this.ioCostPerPage=ioCostPerPage;
+    	file=Database.getCatalog().getDatabaseFile(tableid);
+    	ntups=null;
     }
 
     /**
@@ -101,7 +109,11 @@ public class TableStats {
      */
     public double estimateScanCost() {
         // some code goes here
-        return 0;
+    	if(ntups==null) ntups=totalTuples();
+    	int pageSize = BufferPool.getPageSize();
+    	int size=Database.getCatalog().getTupleDesc(tableid).getSize();
+    	int pageNums=(ntups*size+pageSize-1)/pageSize;
+        return pageNums*ioCostPerPage;
     }
 
     /**
@@ -115,7 +127,8 @@ public class TableStats {
      */
     public int estimateTableCardinality(double selectivityFactor) {
         // some code goes here
-        return 0;
+    	if(ntups==null) ntups=totalTuples();
+        return (int)(selectivityFactor*ntups);
     }
 
     /**
@@ -148,7 +161,61 @@ public class TableStats {
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
         // some code goes here
-        return 1.0;
+    	DbFileIterator iterator=file.iterator(new TransactionId());
+    	if(file.getTupleDesc().getFieldType(field).equals(Type.INT_TYPE)){
+    		int min=Integer.MAX_VALUE;
+    		int max=Integer.MIN_VALUE;
+    		
+    		try{
+    			iterator.open();
+    			while(iterator.hasNext()){
+        			Tuple t=iterator.next();
+        			int v=((IntField)(t.getField(field))).getValue();
+        			min=Math.min(min, v);
+        			max=Math.max(max, v);
+        		}
+    			iterator.close();
+    		}
+    		catch (DbException | TransactionAbortedException e) {
+                throw new RuntimeException(e);
+            }
+    		
+    		IntHistogram intHis=new IntHistogram(NUM_HIST_BINS, min, max);
+    		
+    		try{
+    			iterator.rewind();
+    			while(iterator.hasNext()){
+        			Tuple t=iterator.next();
+        			int v=((IntField)(t.getField(field))).getValue();
+        			intHis.addValue(v);
+        		}
+    			iterator.close();
+    		}
+    		catch (DbException | TransactionAbortedException e) {
+                throw new RuntimeException(e);
+            }
+    		
+    		return intHis.estimateSelectivity(op, ((IntField)constant).getValue());
+    	}
+    	else{
+    		StringHistogram strHis=new StringHistogram(NUM_HIST_BINS);
+    		
+    		try{
+    			iterator.open();
+    			while(iterator.hasNext()){
+        			Tuple t=iterator.next();
+        		    String v=((StringField)(t.getField(field))).getValue();
+        			strHis.addValue(v);
+        		}
+    			iterator.close();
+    		}
+    		catch (DbException | TransactionAbortedException e) {
+                throw new RuntimeException(e);
+            }
+    		
+    		return strHis.estimateSelectivity(op, ((StringField)constant).getValue());
+    	}
+    	
     }
 
     /**
@@ -156,7 +223,21 @@ public class TableStats {
      * */
     public int totalTuples() {
         // some code goes here
-        return 0;
+    	DbFileIterator iterator=file.iterator(new TransactionId());
+    	ntups=0;
+    	try{
+			iterator.open();
+			while(iterator.hasNext()){
+    			ntups++;
+    			iterator.next();
+    		}
+			iterator.close();
+			return ntups;
+		}
+		catch (DbException | TransactionAbortedException e) {
+            throw new RuntimeException(e);
+        }
+       
     }
 
 }
